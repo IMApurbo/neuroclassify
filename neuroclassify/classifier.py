@@ -85,3 +85,7 @@ class ImageClassifier:  # Updated class name to reflect the new package name
 
     def summary(self):
         return self.model.summary()
+
+    def get_class_labels(classifier):
+        """Retrieve class labels from the classifier."""
+        return list(classifier.train_generator.class_indices.keys())
