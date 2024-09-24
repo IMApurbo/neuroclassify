@@ -1,148 +1,123 @@
 ```markdown
 # NeuroClassify
 
-NeuroClassify is a simple and user-friendly image classification package built with TensorFlow. It allows users to train deep learning models on their own image datasets and make predictions on new images with ease.
+NeuroClassify is a Python package for building and using image classification models using TensorFlow and Keras. It provides an easy-to-use interface for training models, saving and loading them, and making predictions on images.
 
-## Features
+## Table of Contents
 
-- Train a custom image classification model using TensorFlow.
-- Predict classes for single images or multiple images from a directory.
-- Support for data augmentation to enhance model performance.
-- Save and load trained models easily.
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Creating an Image Classifier](#creating-an-image-classifier)
+  - [Training the Model](#training-the-model)
+  - [Saving and Loading the Model](#saving-and-loading-the-model)
+  - [Making Predictions](#making-predictions)
+  - [Predicting Multiple Images](#predicting-multiple-images)
+- [Functions](#functions)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
-You can install the NeuroClassify package using pip. Simply run:
+You can install the NeuroClassify package using pip:
 
-```
+```bash
 pip install neuroclassify
 ```
 
 ## Usage
 
-Here’s a quick guide on how to use NeuroClassify for image classification tasks.
+### Creating an Image Classifier
 
-### Importing the Package
-
-```python
-from neuroclassify import ImageClassifier
-```
-
-### Initializing the Classifier
-
-Create an instance of the `ImageClassifier` class by specifying the base directory containing your dataset:
+To create an image classifier, you need to specify the base directory where your training images are stored. The images should be organized in subdirectories named after the class labels.
 
 ```python
-classifier = ImageClassifier(base_dir='path/to/your/dataset')
+from neuroclassify.classify import ImageClassifier
+
+# Create an instance of the ImageClassifier
+classifier = ImageClassifier(base_dir='path_to_your_images')
 ```
 
 ### Training the Model
 
-You can train the model by calling the `train` method. You can specify the number of epochs for training. The default value is set to 20 epochs.
+To train the model, call the `train` method. You can specify the number of epochs for training.
 
 ```python
-classifier.train(epochs=30)  # To train the model for 30 epochs
+history = classifier.train(epochs=20)  # Train the model for 20 epochs
+```
+
+### Saving and Loading the Model
+
+You can save the model using the `save_model` method, and load it later using the `load_model` method.
+
+#### Save Model
+
+```python
+classifier.save_model(filename='my_model.h5')  # Save with a custom filename
+```
+
+#### Load Model
+
+```python
+classifier.load_model(filepath='my_model.h5')  # Load the model from the specified file
 ```
 
 ### Making Predictions
 
-#### Predicting a Single Image
-
-To predict the class of a single image, use the `predict_image` method:
+To predict the class of a single image, use the `predict_image` function. This function will return the predicted class name.
 
 ```python
-predicted_class = classifier.predict_image(img_path='path/to/image.jpg')
-print(f'Predicted class: {predicted_class}')
+from neuroclassify.utils import predict_image
+
+# Get the class labels
+class_labels = list(classifier.train_generator.class_indices.keys())
+
+# Predict the class of an image
+img_path = 'path_to_your_image/image.jpg'  # Path to the image
+predicted_class_name = predict_image(classifier.model, img_path, class_labels)
+
+print(f'Predicted Class: {predicted_class_name}')
 ```
 
-#### Predicting Multiple Images
+### Predicting Multiple Images
 
-To predict the classes of all images in a directory, use the `predict_images` method:
+You can also predict classes for all images in a directory using the `predict_images` function. This function will return a list of predicted class names.
 
 ```python
-predicted_classes = classifier.predict_images(img_dir='path/to/image/directory')
-print(predicted_classes)  # List of predicted classes for each image
+from neuroclassify.utils import predict_images
+
+# Predict classes for all images in a directory
+img_dir = 'path_to_your_image_directory'  # Directory containing images
+predictions = predict_images(classifier.model, img_dir, class_labels)
+
+for filename, predicted_class_name in predictions:
+    print(f'File: {filename}, Predicted Class: {predicted_class_name}')
 ```
 
-### Saving and Loading Models
+## Functions
 
-You can save your trained model using the `save_model` method:
+### ImageClassifier Class
+- **`__init__(self, base_dir, img_size=(150, 150), batch_size=32)`**: Initializes the image classifier with the base directory for images, image size, and batch size.
+- **`train(self, epochs=20)`**: Trains the model for a specified number of epochs.
+- **`save_model(self, filename='image_classifier_model.h5')`**: Saves the trained model to the specified filename.
+- **`load_model(self, filepath)`**: Loads the model from the specified file.
+- **`summary(self)`**: Prints the model summary.
 
-```python
-classifier.save_model(filepath='path/to/save/model.h5')
-```
-
-To load a previously saved model, use the `load_model` method:
-
-```python
-classifier.load_model(filepath='path/to/saved/model.h5')
-```
-
-## Examples
-
-Here are some examples of how you can use the NeuroClassify package.
-
-### Example 1: Basic Usage
-
-```python
-from neuroclassify.classifier import ImageClassifier
-
-# Initialize the classifier
-classifier = ImageClassifier(base_dir='path/to/your/dataset')
-
-# Train the model
-classifier.train(epochs=30)
-
-# Predict a single image
-predicted_class = classifier.predict_image(img_path='path/to/image.jpg')
-print(f'Predicted class: {predicted_class}')
-
-# Predict multiple images in a directory
-predicted_classes = classifier.predict_images(img_dir='path/to/image/directory')
-print(predicted_classes)
-```
-
-### Example 2: Saving and Loading Models
-
-```python
-from neuroclassify.classifier import ImageClassifier
-
-# Initialize the classifier
-classifier = ImageClassifier(base_dir='path/to/your/dataset')
-
-# Train the model
-classifier.train(epochs=30)
-
-# Save the trained model
-classifier.save_model(filepath='my_model.h5')
-
-# Load the saved model
-classifier.load_model(filepath='my_model.h5')
-
-# Predict an image using the loaded model
-predicted_class = classifier.predict_image(img_path='path/to/image.jpg')
-print(f'Predicted class after loading: {predicted_class}')
-```
+### Utility Functions
+- **`load_and_preprocess_image(img_path, target_size=(150, 150))`**: Loads and preprocesses an image for prediction.
+- **`predict_image(model, img_path, class_labels, img_size=(150, 150))`**: Predicts the class of a single image.
+- **`predict_images(model, img_dir, class_labels, img_size=(150, 150))`**: Predicts classes for all images in a specified directory.
 
 ## Contributing
 
-Contributions are welcome! If you'd like to contribute to NeuroClassify, please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeature`).
-3. Make your changes and commit them (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Open a pull request.
+Contributions are welcome! Please feel free to submit a pull request or report issues.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Contact
-
-For questions or feedback, please reach out to:
-
-- **Your Name** - [bandinvisible8@gmail.com](mailto:bandinvisible8@gmail.com)
-
-Thank you for using NeuroClassify!
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 ```
+
+### Instructions to Customize
+- Replace `path_to_your_images` and `path_to_your_image` with relevant paths or descriptions.
+- You may want to add additional sections or modify existing ones to suit your project's needs.
+- Include any specific instructions related to your project that may not be covered in this template.
+
