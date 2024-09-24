@@ -5,7 +5,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropou
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 
-class NeuroClassify:  # Updated class name to reflect the new package name
+class ImageClassifier:  # Updated class name to reflect the new package name
     def __init__(self, base_dir, img_size=(150, 150), batch_size=32):
         self.base_dir = base_dir
         self.img_size = img_size
