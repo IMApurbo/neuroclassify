@@ -1,5 +1,3 @@
-Here's a comprehensive `README.md` file for your `neuroclassify` package. It includes sections for installation, usage, examples, and contribution guidelines.
-
 ```markdown
 # NeuroClassify
 
