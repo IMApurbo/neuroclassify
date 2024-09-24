@@ -77,8 +77,12 @@ class ImageClassifier:  # Updated class name to reflect the new package name
 
         return history
 
-    def save_model(self, filepath='image_classifier_model.h5'):
+    def save_model(self, filename='image_classifier_model.h5'):
+        """Save the model to the specified filename."""
+        filepath = os.path.join(self.base_dir, filename)  # Combine base directory with filename
         self.model.save(filepath)
+        print(f'Model saved to: {filepath}')
+
 
     def load_model(self, filepath):
         self.model = tf.keras.models.load_model(filepath)
