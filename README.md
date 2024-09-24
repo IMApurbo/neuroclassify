@@ -14,7 +14,7 @@ NeuroClassify is a simple and user-friendly image classification package built w
 
 You can install the NeuroClassify package using pip. Simply run:
 
-```bash
+```
 pip install neuroclassify
 ```
 
