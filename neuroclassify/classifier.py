@@ -171,8 +171,67 @@ class ImageClassifier:
             labels_dict = json.load(f)
         return labels_dict
 
-    def predict_image(self, img_path, display=False):
-        """Predict the class label for a single image and optionally display it."""
+def predict_image(self, img_path, display=False):
+    """
+    Predict the class label for a single image and optionally display it.
+    Args:
+        img_path (str): Path to the image file.
+        display (bool): Whether to display the image with the prediction.
+    Returns:
+        str: Predicted class label.
+    """
+    if not self.class_indices:
+        raise ValueError("Class indices are not loaded. Load the labels first.")
+
+    # Invert the class_indices dictionary to map indices back to labels
+    index_to_label = {v: k for k, v in self.class_indices.items()}
+
+    # Load and preprocess the image
+    img = image.load_img(img_path, target_size=self.img_size)
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+    img_array /= 255.0  # Normalize the image
+
+    # Predict the class
+    predictions = self.model.predict(img_array)
+    predicted_class_idx = np.argmax(predictions[0])
+
+    # Map the predicted class index to the class label
+    predicted_class_label = index_to_label.get(predicted_class_idx, "Unknown class")
+
+    # Optionally display the image with the predicted label
+    if display:
+        plt.imshow(img)
+        plt.title(f"Predicted: {predicted_class_label}")
+        plt.axis('off')
+        plt.show()
+
+    return predicted_class_label
+
+def predict_images(self, folder_path, display=False):
+    """
+    Predict class labels for all images in a folder and optionally display them.
+    Args:
+        folder_path (str): Path to the folder containing image files.
+        display (bool): Whether to display the images with predictions.
+    Returns:
+        dict: A dictionary with image paths as keys and predicted class labels as values.
+    """
+    if not self.class_indices:
+        raise ValueError("Class indices are not loaded. Load the labels first.")
+
+    # Invert the class_indices dictionary to map indices back to labels
+    index_to_label = {v: k for k, v in self.class_indices.items()}
+
+    predictions = {}
+
+    # List all files in the folder
+    image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+
+    # Loop through each image file in the folder
+    for img_file in image_files:
+        img_path = os.path.join(folder_path, img_file)
+
         # Load and preprocess the image
         img = image.load_img(img_path, target_size=self.img_size)
         img_array = image.img_to_array(img)
@@ -180,32 +239,21 @@ class ImageClassifier:
         img_array /= 255.0  # Normalize the image
 
         # Predict the class
-        predictions = self.model.predict(img_array)
-        predicted_class_idx = np.argmax(predictions[0])
+        predictions_array = self.model.predict(img_array)
+        predicted_class_idx = np.argmax(predictions_array[0])
 
         # Map the predicted class index to the class label
-        predicted_class_label = self.class_indices.get(str(predicted_class_idx), "Unknown class")
+        predicted_class_label = index_to_label.get(predicted_class_idx, "Unknown class")
+
+        # Store the prediction
+        predictions[img_path] = predicted_class_label
 
         # Optionally display the image with the predicted label
         if display:
-            plt.imshow(img)
+            plt.imshow(image.load_img(img_path))
             plt.title(f"Predicted: {predicted_class_label}")
             plt.axis('off')
             plt.show()
 
-        return predicted_class_label
+    return predictions
 
-    def predict_images(self, folder_path, display=False):
-        """Predict class labels for all images in a folder and optionally display them."""
-        predictions = {}
-
-        # List all files in the folder
-        image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
-
-        # Loop through each image file in the folder
-        for img_file in image_files:
-            img_path = os.path.join(folder_path, img_file)
-            label = self.predict_class(img_path, display)
-            predictions[img_path] = label
-
-        return predictions
