@@ -2,7 +2,7 @@
 
 # Import the main components of the package for easier access
 
-from .classifier import ImageClassifier, predict_image, predict_images
+from .classifier import ImageClassifier
 from .utils import save_labels, load_labels
 
 
