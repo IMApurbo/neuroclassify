@@ -167,7 +167,7 @@ class ImageClassifier:
             labels_dict = json.load(f)
         return labels_dict
 
-    def predict_class(self, img_path, display=False):
+    def predict_image(self, img_path, display=False):
         """Predict the class label for a single image and optionally display it."""
         # Load and preprocess the image
         img = image.load_img(img_path, target_size=self.img_size)
@@ -191,7 +191,7 @@ class ImageClassifier:
 
         return predicted_class_label
 
-    def predict_images_from_folder(self, folder_path, display=False):
+    def predict_images(self, folder_path, display=False):
         """Predict class labels for all images in a folder and optionally display them."""
         predictions = {}
 
@@ -205,5 +205,3 @@ class ImageClassifier:
             predictions[img_path] = label
 
         return predictions
-
-# utils.py file should include the save_labels and load_labels functions
