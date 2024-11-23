@@ -142,6 +142,7 @@ class ImageClassifier:
             zipf.write(model_file)
             zipf.write('labels.txt')
         os.remove(model_file)
+        os.remove('labels.txt')
 
     def load_model(self, model_file, label_file):
         """Load the model and labels."""
