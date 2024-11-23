@@ -7,6 +7,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ReduceLROnPlateau
 import matplotlib.pyplot as plt
 from .utils import save_labels, load_labels  # Ensure utils has save_labels and load_labels functions
+import json  # To save and load labels as JSON
+
 
 class ImageClassifier:
     def __init__(self, img_size=(150, 150), batch_size=32):
@@ -145,3 +147,6 @@ class ImageClassifier:
         """Load the model and labels."""
         self.model = load_model(model_file)
         self.class_indices = load_labels(label_file)
+
+
+# utils.py file should include the save_labels and load_labels functions
