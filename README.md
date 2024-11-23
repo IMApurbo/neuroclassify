@@ -156,7 +156,7 @@ Contributions to the `NeuroClassify` package are welcome! If you have suggestion
 
 ## License
 
-`NeuroClassify` is open source and available under the [MIT License](LICENSE).
+`NeuroClassify` is open source and available under the [MIT License](https://github.com/IMApurbo/neuroclassify/blob/main/LICENSE).
 
 ---
 
