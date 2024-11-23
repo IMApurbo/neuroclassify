@@ -8,6 +8,8 @@ from tensorflow.keras.callbacks import ReduceLROnPlateau
 import matplotlib.pyplot as plt
 from .utils import save_labels, load_labels  # Ensure utils has save_labels and load_labels functions
 import json  # To save and load labels as JSON
+import numpy as np
+from tensorflow.keras.preprocessing import image
 
 
 class ImageClassifier:
@@ -135,19 +137,73 @@ class ImageClassifier:
         plt.show()
 
     def save_model(self, name='model'):
-        """Save the trained model and labels."""
+        """Save the trained model and labels to a zip file."""
+        # Save the model
         model_file = name + '.h5'
         self.model.save(model_file)
+        
+        # Save the labels to a JSON file
+        labels_file = 'labels.json'
+        with open(labels_file, 'w') as f:
+            json.dump(self.class_indices, f, indent=2)
+        
+        # Create a zip file containing the model and labels
         with zipfile.ZipFile(f'{name}.zip', 'w') as zipf:
             zipf.write(model_file)
-            zipf.write('labels.txt')
+            zipf.write(labels_file)
+        
+        # Clean up by removing the model and labels files
         os.remove(model_file)
-        os.remove('labels.txt')
+        os.remove(labels_file)
 
     def load_model(self, model_file, label_file):
-        """Load the model and labels."""
+        """Load the trained model and the class labels."""
         self.model = load_model(model_file)
-        self.class_indices = load_labels(label_file)
+        self.class_indices = self.load_labels(label_file)
 
+    def load_labels(self, label_file):
+        """Load the class labels from a JSON file."""
+        with open(label_file, 'r') as f:
+            labels_dict = json.load(f)
+        return labels_dict
+
+    def predict_class(self, img_path, display=False):
+        """Predict the class label for a single image and optionally display it."""
+        # Load and preprocess the image
+        img = image.load_img(img_path, target_size=self.img_size)
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+        img_array /= 255.0  # Normalize the image
+
+        # Predict the class
+        predictions = self.model.predict(img_array)
+        predicted_class_idx = np.argmax(predictions[0])
+
+        # Map the predicted class index to the class label
+        predicted_class_label = self.class_indices.get(str(predicted_class_idx), "Unknown class")
+
+        # Optionally display the image with the predicted label
+        if display:
+            plt.imshow(img)
+            plt.title(f"Predicted: {predicted_class_label}")
+            plt.axis('off')
+            plt.show()
+
+        return predicted_class_label
+
+    def predict_images_from_folder(self, folder_path, display=False):
+        """Predict class labels for all images in a folder and optionally display them."""
+        predictions = {}
+
+        # List all files in the folder
+        image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
+
+        # Loop through each image file in the folder
+        for img_file in image_files:
+            img_path = os.path.join(folder_path, img_file)
+            label = self.predict_class(img_path, display)
+            predictions[img_path] = label
+
+        return predictions
 
 # utils.py file should include the save_labels and load_labels functions
