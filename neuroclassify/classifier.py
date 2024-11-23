@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.callbacks import ReduceLROnPlateau
 import matplotlib.pyplot as plt
 from .utils import save_labels, load_labels  # Ensure utils has save_labels and load_labels functions
 
@@ -90,7 +90,6 @@ class ImageClassifier:
 
         # Learning rate scheduler and early stopping
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-6, verbose=1)
-        early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True, verbose=1)
 
         # Train the model
         history = self.model.fit(
@@ -99,7 +98,7 @@ class ImageClassifier:
             validation_data=self.val_generator,
             validation_steps=self.val_generator.samples // self.val_generator.batch_size,
             epochs=epochs,
-            callbacks=[reduce_lr, early_stop]
+            callbacks=[reduce_lr]
         )
 
         # Save class indices
