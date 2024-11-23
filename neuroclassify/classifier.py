@@ -171,7 +171,7 @@ class ImageClassifier:
             labels_dict = json.load(f)
         return labels_dict
 
-     def predict_image(self, img_path, display=False):
+    def predict_image(self, img_path, display=False):
         """Predict the class label for a single image and optionally display it."""
         # Load and preprocess the image
         img = image.load_img(img_path, target_size=self.img_size)
