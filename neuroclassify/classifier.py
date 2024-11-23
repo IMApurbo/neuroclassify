@@ -1,95 +1,80 @@
 import os
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
+import zipfile
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import ReduceLROnPlateau
+from tensorflow.keras.callbacks import EarlyStopping
+from .utils import save_labels, predict_images
 
-class ImageClassifier:  # Updated class name to reflect the new package name
-    def __init__(self, base_dir, img_size=(150, 150), batch_size=32):
-        self.base_dir = base_dir
-        self.img_size = img_size
-        self.batch_size = batch_size
+
+class ImageClassifier:
+    def __init__(self, dataset_dir=None):
+        self.dataset_dir = dataset_dir
+        self.model = None
+        self.class_indices = None
+    
+    def create_model(self, input_shape=(150, 150, 3), num_classes=2):
+        model = Sequential([
+            Conv2D(32, (3, 3), activation='relu', input_shape=(150, 150, 3)),
+            MaxPooling2D(2, 2),
+            Conv2D(64, (3, 3), activation='relu'),
+            MaxPooling2D(2, 2),
+            Conv2D(128, (3, 3), activation='relu'),
+            MaxPooling2D(2, 2),
+            Flatten(),
+            Dense(128, activation='relu'),
+            Dropout(0.5),
+            Dense(train_generator.num_classes, activation='softmax')  # Output layer
+        ])
         
-        self.datagen = ImageDataGenerator(
-            rescale=1.0/255.0,
-            rotation_range=40,
-            width_shift_range=0.2,
-            height_shift_range=0.2,
-            shear_range=0.2,
-            zoom_range=0.2,
-            horizontal_flip=True,
-            brightness_range=[0.8, 1.2],
-            validation_split=0.2
-        )
-
-        self.train_generator = self.datagen.flow_from_directory(
-            self.base_dir,
-            target_size=self.img_size,
-            batch_size=self.batch_size,
-            class_mode='categorical',
-            subset='training',
-            shuffle=True,
-            seed=42
-        )
-
-        self.val_generator = self.datagen.flow_from_directory(
-            self.base_dir,
-            target_size=self.img_size,
-            batch_size=self.batch_size,
-            class_mode='categorical',
-            subset='validation',
-            shuffle=True,
-            seed=42
-        )
-        
-        self.model = self.build_model()
-
-    def build_model(self):
-        model = Sequential()
-        model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(self.img_size[0], self.img_size[1], 3)))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Conv2D(64, (3, 3), activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Conv2D(128, (3, 3), activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Conv2D(256, (3, 3), activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Flatten())
-        model.add(Dense(512, activation='relu'))
-        model.add(Dropout(0.5))
-        model.add(Dense(len(self.train_generator.class_indices), activation='softmax'))
-
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        self.model = model
         return model
-
-    def train(self, epochs=20):  # Default epochs set to 20
-        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-6, verbose=1)
-
-        history = self.model.fit(
-            self.train_generator,
-            steps_per_epoch=self.train_generator.samples // self.train_generator.batch_size,
-            validation_data=self.val_generator,
-            validation_steps=self.val_generator.samples // self.val_generator.batch_size,
-            epochs=epochs,
-            callbacks=[reduce_lr]
+    
+    def train(self, epochs=10, batch_size=32):
+        if not self.dataset_dir:
+            raise ValueError("Dataset directory is not specified.")
+        
+        train_datagen = ImageDataGenerator(rescale=1./255)
+        val_datagen = ImageDataGenerator(rescale=1./255)
+        
+        train_generator = train_datagen.flow_from_directory(
+            self.dataset_dir + '/train', target_size=(150, 150), batch_size=batch_size, class_mode='categorical'
         )
-
+        
+        val_generator = val_datagen.flow_from_directory(
+            self.dataset_dir + '/val', target_size=(150, 150), batch_size=batch_size, class_mode='categorical'
+        )
+        
+        early_stop = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+        history = self.model.fit(
+            train_generator, epochs=epochs, validation_data=val_generator, callbacks=[early_stop]
+        )
+        self.class_indices = train_generator.class_indices
+        save_labels(self.class_indices)
         return history
-
-    def save_model(self, filename='image_classifier_model.h5'):
-        """Save the model to the specified filename."""
-        filepath = os.path.join(self.base_dir, filename)  # Combine base directory with filename
-        self.model.save(filepath)
-        print(f'Model saved to: {filepath}')
-
-
-    def load_model(self, filepath):
-        self.model = tf.keras.models.load_model(filepath)
-
-    def summary(self):
-        return self.model.summary()
-
-    def get_class_labels(classifier):
-        """Retrieve class labels from the classifier."""
-        return list(classifier.train_generator.class_indices.keys())
+    
+    def save_model(self, name='model'):
+        if self.model is None:
+            raise ValueError("Model is not created or trained.")
+        
+        model_path = f'{name}.h5'
+        label_path = 'labels.txt'
+        
+        self.model.save(model_path)
+        zip_filename = f'{name}.zip'
+        
+        # Create a zip file with the model and labels
+        with zipfile.ZipFile(zip_filename, 'w') as zipf:
+            zipf.write(model_path)
+            zipf.write(label_path)
+        
+        # Remove the .h5 model and label file
+        os.remove(model_path)
+        os.remove(label_path)
+    
+    def load_model(self, model='model.h5', label='labels.txt'):
+        self.model = load_model(model)
+        with open(label, 'r') as f:
+            self.class_indices = {line.strip().split(": ")[1]: line.strip().split(": ")[0] for line in f.readlines()}
+        return self.model
