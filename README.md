@@ -91,7 +91,7 @@ img_path = 'path_to_your_image/image.jpg'
 classifier.load_model(model='my_model.h5', label='labels.txt')  # Load the model from the specified file
 
 # Predict the class of an image and display the image
-predicted_class_name = predict_image(model, img_path, label, display=True)
+predicted_class_name = predict_image(img_path, display=True)
 print(f'Predicted Class: {predicted_class_name}')
 ```
 
@@ -102,11 +102,9 @@ The `display=True` option will show the image along with the predicted class nam
 To predict the classes of all images in a directory, you can use the `predict_images` function. This will return a list of predictions for each image:
 
 ```python
-from neuroclassify.utils import predict_images
-
 # Predict classes for all images in a directory
 img_dir = 'path_to_your_image_directory'  # Directory containing images
-predictions = predict_images(model, img_dir, label, display=True)
+predictions = predict_images(img_dir, display=True)
 
 for filename, predicted_class_name in predictions:
     print(f'File: {filename}, Predicted Class: {predicted_class_name}')
