@@ -35,7 +35,7 @@ To create an image classifier, you need to specify the base directory where your
 from neuroclassify import ImageClassifier
 
 # Create an instance of the ImageClassifier
-classifier = ImageClassifier()
+classifier = ImageClassifier(img_size=(150, 150), batch_size=32)
 classifier.dataset_dir = 'path_to_your_dataset'
 ```
 
@@ -79,19 +79,16 @@ classifier.load_model(model='my_model.h5', label='labels.txt')  # Load the model
 
 ### **Making Predictions**
 
-To make predictions with the trained model, you can use the `predict_image` function. This allows you to classify a single image and get the predicted class name.
+To make predictions with the trained model, you can use the `predict_image()` function. This allows you to classify a single image and get the predicted class name.
 
 #### Predicting a Single Image
 
 Here is how you can predict the class of a single image:
 
 ```python
-from neuroclassify import predict_image
-
 # Define the path to your model, image, and labels
 img_path = 'path_to_your_image/image.jpg'
-model = 'path_to_your_model.h5'
-label = 'label.txt'
+classifier.load_model(model='my_model.h5', label='labels.txt')  # Load the model from the specified file
 
 # Predict the class of an image and display the image
 predicted_class_name = predict_image(model, img_path, label, display=True)
@@ -161,3 +158,5 @@ Contributions to the `NeuroClassify` package are welcome! If you have suggestion
 ---
 
 This guide provides everything you need to get started with `NeuroClassify` for image classification. You can now train models, save/load them, and use them for predictions with ease.
+
+---
