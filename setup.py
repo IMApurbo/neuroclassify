@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='neuroclassify',
-    version='2.5',
+    version='2.6',
     description='A simple image classification package using deep learning.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
