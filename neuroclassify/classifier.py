@@ -137,24 +137,28 @@ class ImageClassifier:
         plt.show()
 
     def save_model(self, name='model'):
-        """Save the trained model and labels to a zip file."""
-        # Save the model
+        """
+        Save the trained model and labels to a zip file.
+        Args:
+            name (str): The base name for the saved files (without extension).
+        """
+        # Save the model to an H5 file
         model_file = name + '.h5'
         self.model.save(model_file)
-        
-        # Save the labels to a JSON file
+    
+        # Save the labels to a JSON file using the updated save_labels function
         labels_file = 'labels.json'
-        with open(labels_file, 'w') as f:
-            json.dump(self.class_indices, f, indent=2)
-        
+        save_labels(self.class_indices, labels_file)
+
         # Create a zip file containing the model and labels
         with zipfile.ZipFile(f'{name}.zip', 'w') as zipf:
             zipf.write(model_file)
             zipf.write(labels_file)
-        
+    
         # Clean up by removing the model and labels files
         os.remove(model_file)
         os.remove(labels_file)
+        print(f"Model and labels saved to {name}.zip")
 
     def load_model(self, model_file, label_file):
         """Load the trained model and the class labels."""
