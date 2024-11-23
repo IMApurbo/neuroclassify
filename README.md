@@ -114,6 +114,14 @@ This will go through all images in the specified directory and print the predict
 
 ---
 
+#### Model Accuracy
+
+```python
+val_loss, val_accuracy = abc.model.evaluate(abc.val_generator)
+
+print(f"Validation Loss: {val_loss:.4f}")
+print(f"Validation Accuracy: {val_accuracy:.4f}")
+```
 ## Functions
 
 ### **`ImageClassifier` Class**
